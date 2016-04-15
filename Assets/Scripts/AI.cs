@@ -15,7 +15,8 @@ public class AI : MonoBehaviour {
 	public TileManager.Tile targetTile;
 	TileManager.Tile currentTile;
 
-	void Awake()
+
+    void Awake()
 	{
 		manager = GameObject.Find("Game Manager").GetComponent<TileManager>();
 		tiles = manager.tiles;
@@ -92,7 +93,7 @@ public class AI : MonoBehaviour {
 		}
 	}
 
-	public void RunLogic()
+    public void RunLogic()
 	{
 		// get current tile
 		Vector3 currentPos = new Vector3(transform.position.x + 0.499f, transform.position.y + 0.499f);
@@ -205,9 +206,63 @@ public class AI : MonoBehaviour {
 		return targetTile;
 	}
 
+    enum Distance { near, medium, far };
+    enum Skill {  bad, medium, good }
+    enum Rate { bad, medium, good };
+    enum Length { time_short, time_med, time_long };
 
     public void RunFuzzyLogic()
     {
+        Distance pacman_dist;
+        List<Distance> ghosts_dist = new List<Distance>();
+        Skill player_skill;
+        Length pellet;
+
+
+        /*
+        if (pacman_near && skill_good) 
+            hunting_behaviour
+        if (pacman_near && skill_med) 
+            hunting_behaviour
+        if (pacman_near && skill_med && pellet_long)
+            hunting_behaviour
+
+
+        if (pacman_med && skill_bad && ghost_far && pellet_short) 
+            defense_behaviour
+        if (pacman_med && skill_bad && ghost_near && pellet_short) 
+            shy_ghost_behaviour
+        if (pacman_med AND skill_med AND pellet_long) 
+            hunting_behaviour
+        if (pacman_med AND skill_good AND pellet_long)
+            hunting_behaviour
+
+        if (pacman_far AND skill_bad AND ghost_near AND pellet_short) then shy_ghost_behaviour
+        if (pacman_far AND skill_bad AND ghost_near AND pellet_med) then shy_ghost_behaviour
+        if (pacman_far AND skill_bad AND ghost_med AND pellet_short) then defense_behaviour
+        if (pacman_far AND skill_bad AND ghost_med AND pellet_short) then shy_ghost_behaviour
+        if (pacman_far AND skill_bad AND ghost_med AND pellet_med) then shy_ghost_behaviour
+        if (pacman_far AND skill_bad AND ghost_far AND pellet_short) then defense_behaviour
+        if (pacman_far AND skill_bad AND ghost_far AND pellet_med) then defense_behaviour
+        if (pacman_far AND skill_bad AND ghost_far AND pellet_med) then defense_behaviour
+        if (pacman_far AND skill_med AND ghost_near AND pellet_short) then shy_ghost_behaviour
+        if (pacman_far AND skill_good AND pellet_long) then hunting_behaviour
+        
+        */
+    }
+
+    Skill PlayerSkill() {
+        Length time_life;
+        Length pellet_rate;
+        /*
+        if (time_life == Length.time_short || pellet_rate == Rate.bad)
+            return Skill.bad;
+        if (time_life == Length.time_med || pellet_rate == Rate.medium)
+            return Skill.medium;
+        if (time_life == Length.time_long && pellet_rate == Rate.good)
+            return Skill.medium;
+        */
+        return Skill.bad;
     }
 
 }

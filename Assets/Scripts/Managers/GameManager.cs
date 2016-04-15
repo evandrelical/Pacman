@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class GameManager : MonoBehaviour {
 
@@ -18,6 +19,9 @@ public class GameManager : MonoBehaviour {
     private GameObject inky;
     private GameObject clyde;
     private GameGUINavigation gui;
+
+    public DateTime lastspawnedtime;     // reset on every death
+    public List<int> lifetimes;         //  in seconds
 
 	public static bool scared;
     static public int score;
@@ -91,6 +95,7 @@ public class GameManager : MonoBehaviour {
         _timeToCalm = 0.0f;
         scared = false;
         PlayerController.killstreak = 0;
+        lastspawnedtime = DateTime.Now;
     }
 
     // Update is called once per frame
@@ -123,7 +128,8 @@ public class GameManager : MonoBehaviour {
         gameState = GameState.Init;  
         gui.H_ShowReadyScreen();
 
-	}
+        lastspawnedtime = DateTime.Now;
+    }
 
 	public void ToggleScare()
 	{
@@ -181,6 +187,10 @@ public class GameManager : MonoBehaviour {
 
     public void LoseLife()
     {
+        DateTime deathTime = DateTime.Now;
+        lifetimes.Add(deathTime.Subtract(lastspawnedtime).Seconds);
+        Debug.Log("You lasted " + lifetimes[lifetimes.Count - 1] + " seconds.");
+
         lives--;
         gameState = GameState.Dead;
     
@@ -188,6 +198,8 @@ public class GameManager : MonoBehaviour {
         UIScript ui = GameObject.FindObjectOfType<UIScript>();
         Destroy(ui.lives[ui.lives.Count - 1]);
         ui.lives.RemoveAt(ui.lives.Count - 1);
+
+        lastspawnedtime = DateTime.Now; // reset
     }
 
     public static void DestroySelf()

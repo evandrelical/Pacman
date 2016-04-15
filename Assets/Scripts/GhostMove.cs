@@ -39,8 +39,8 @@ public class GhostMove : MonoBehaviour {
 	private float timeToEndScatter;
 	private float timeToEndWait;
 
-	enum State { Wait, Init, Scatter, Chase, Run, Defend, Shy, Random };
-	State state;
+	public enum State { Wait, Init, Scatter, Chase, Run, Defend, Shy, Random };
+	public State state;
 
     private Vector3 _startPos;
     private float _timeToWhite;
@@ -477,12 +477,27 @@ public class GhostMove : MonoBehaviour {
         GetComponent<Animator>().SetBool("Run_White", false);
         GetComponent<Animator>().SetBool("Run", false);
 	}
-
+    
     public void ToggleBlueWhite()
     {
         isWhite = !isWhite;
         GetComponent<Animator>().SetBool("Run_White", isWhite);
         _timeToToggleWhite = Time.time + _toggleInterval;
     }
+
+    public void Defend()    {
+        state = State.Defend;
+    }
+
+    public void Shy()
+    {
+        state = State.Shy;
+    }
+
+    public void Random()
+    {
+        state = State.Defend;
+    }
+
 
 }
