@@ -39,7 +39,7 @@ public class GhostMove : MonoBehaviour {
 	private float timeToEndScatter;
 	private float timeToEndWait;
 
-	enum State { Wait, Init, Scatter, Chase, Run };
+	enum State { Wait, Init, Scatter, Chase, Run, Defend, Shy, Random };
 	State state;
 
     private Vector3 _startPos;
@@ -85,14 +85,27 @@ public class GhostMove : MonoBehaviour {
 				Scatter();
 				break;
 
+			case State.Run:
+                RunAway();
+				break;
+
 			case State.Chase:
 				ChaseAI();
 				break;
 
-			case State.Run:
-				RunAway();
+			case State.Defend:
+				DefenseAI();
 				break;
-			}
+
+            case State.Shy:
+                ShyAI();
+                break;
+
+            case State.Random:
+                RandomAI();
+                break;
+
+            }
 		}
 	}
 
@@ -380,8 +393,8 @@ public class GhostMove : MonoBehaviour {
 		else GetComponent<AI>().AILogic();
 
 	}
-
-	void RunAway()
+    
+    void RunAway()
 	{
 		GetComponent<Animator>().SetBool("Run", true);
 
@@ -399,9 +412,33 @@ public class GhostMove : MonoBehaviour {
 
 	}
 
-	//------------------------------------------------------------------------------
-	// Utility functions
-	void MoveToWaypoint(bool loop = false)
+
+    //------------------------------------------------------------------------------
+    // Fuzzy behaviour functions
+    // "hunting" behaviour is covered by ChaseAI()
+
+    // "shy ghost" behaviour
+    void ShyAI()
+    {
+
+    }
+
+    // "Defense" behaviour
+    void DefenseAI()
+    {
+
+    }
+
+    // "random" behaviour
+    void RandomAI()
+    {
+
+    }
+
+
+    //------------------------------------------------------------------------------
+    // Utility functions
+    void MoveToWaypoint(bool loop = false)
 	{
 		waypoint = waypoints.Peek();		// get the waypoint (CHECK NULL?)
         if (Vector3.Distance(transform.position, waypoint) > 0.000000000001)	// if its not reached
@@ -417,7 +454,7 @@ public class GhostMove : MonoBehaviour {
 		}
 	}
 
-	public void Frighten()
+    public void Frighten()
 	{
 		state = State.Run;
 		_direction *= -1;

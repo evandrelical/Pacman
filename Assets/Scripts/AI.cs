@@ -204,4 +204,10 @@ public class AI : MonoBehaviour {
 		}
 		return targetTile;
 	}
+
+
+    public void RunFuzzyLogic()
+    {
+    }
+
 }

@@ -96,10 +96,13 @@ public class GameManager : MonoBehaviour {
     // Update is called once per frame
 	void Update () 
 	{
-		if(scared && _timeToCalm <= Time.time)
-			CalmGhosts();
+        if (scared && _timeToCalm <= Time.time)
+            CalmGhosts();
+        else {
+            FuzzyBehaviourSelection();
+        }
 
-	}
+	}    
 
 	public void ResetScene()
 	{
@@ -148,6 +151,14 @@ public class GameManager : MonoBehaviour {
 		inky.GetComponent<GhostMove>().Calm();
 		clyde.GetComponent<GhostMove>().Calm();
 	    PlayerController.killstreak = 0;
+    }
+
+    public void FuzzyBehaviourSelection()
+    {
+        blinky.GetComponent<AI>().RunFuzzyLogic();
+        pinky.GetComponent<AI>().RunFuzzyLogic();
+        inky.GetComponent<AI>().RunFuzzyLogic();
+        clyde.GetComponent<AI>().RunFuzzyLogic();
     }
 
     void AssignGhosts()
