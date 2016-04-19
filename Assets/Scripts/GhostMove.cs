@@ -39,7 +39,7 @@ public class GhostMove : MonoBehaviour {
 	private float timeToEndScatter;
 	private float timeToEndWait;
 
-	public enum State { Wait, Init, Scatter, Chase, Run, Defend, Shy, Random };
+	public enum State { Wait, Init, Scatter, Chase, Run, Defend };
 	public State state;
 
     private Vector3 _startPos;
@@ -96,15 +96,7 @@ public class GhostMove : MonoBehaviour {
 			case State.Defend:
 				DefenseAI();
 				break;
-
-            case State.Shy:
-                ShyAI();
-                break;
-
-            case State.Random:
-                RandomAI();
-                break;
-
+                    
             }
 		}
 	}
@@ -415,26 +407,20 @@ public class GhostMove : MonoBehaviour {
 
     //------------------------------------------------------------------------------
     // Fuzzy behaviour functions
-    // "hunting" behaviour is covered by ChaseAI()
-
-    // "shy ghost" behaviour
-    void ShyAI()
-    {
-
-    }
-
     // "Defense" behaviour
     void DefenseAI()
     {
+        // if not at waypoint, move towards it
+        if (Vector3.Distance(transform.position, waypoint) > 0.000000000001)
+        {
+            Vector2 p = Vector2.MoveTowards(transform.position, waypoint, speed);
+            GetComponent<Rigidbody2D>().MovePosition(p);
+        }
 
+        // if at waypoint, run AI module
+        else GetComponent<AI>().DefenseLogic();
     }
-
-    // "random" behaviour
-    void RandomAI()
-    {
-
-    }
-
+    
 
     //------------------------------------------------------------------------------
     // Utility functions
@@ -489,15 +475,15 @@ public class GhostMove : MonoBehaviour {
         state = State.Defend;
     }
 
+
+    public void Chase()
+    {
+        state = State.Chase;
+    }
+
+
     public void Shy()
     {
-        state = State.Shy;
+        state = State.Scatter;
     }
-
-    public void Random()
-    {
-        state = State.Defend;
-    }
-
-
 }

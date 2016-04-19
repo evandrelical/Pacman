@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 public class AI : MonoBehaviour {
 
@@ -144,7 +145,7 @@ public class AI : MonoBehaviour {
 				if(currentTile.left != null && !currentTile.left.occupied && !(ghost.direction.x > 0)) 		availableTiles.Add (currentTile.left);
 				if(currentTile.right != null && !currentTile.right.occupied && !(ghost.direction.x < 0))	availableTiles.Add (currentTile.right);
 
-				int rand = Random.Range(0, availableTiles.Count);
+				int rand = UnityEngine.Random.Range(0, availableTiles.Count);
 				chosenTile = availableTiles[rand];
 				ghost.direction = Vector3.Normalize(new Vector3(chosenTile.x - currentTile.x, chosenTile.y - currentTile.y, 0));
 				//Debug.Log (ghost.name + ": Chosen Tile (" + chosenTile.x + ", " + chosenTile.y + ")" );
@@ -160,7 +161,77 @@ public class AI : MonoBehaviour {
 	}
 
 
-	TileManager.Tile GetTargetTilePerGhost()
+    public void DefenseLogic()
+    {
+        // get current tile
+        Vector3 currentPos = new Vector3(transform.position.x + 0.499f, transform.position.y + 0.499f);
+        currentTile = tiles[manager.Index((int)currentPos.x, (int)currentPos.y)];
+
+        targetTile = GetTargetTilePerGhost(); // TO-DO get target tile at area with the most pellets
+
+        // get the next tile according to direction
+        if (ghost.direction.x > 0) nextTile = tiles[manager.Index((int)(currentPos.x + 1), (int)currentPos.y)];
+        if (ghost.direction.x < 0) nextTile = tiles[manager.Index((int)(currentPos.x - 1), (int)currentPos.y)];
+        if (ghost.direction.y > 0) nextTile = tiles[manager.Index((int)currentPos.x, (int)(currentPos.y + 1))];
+        if (ghost.direction.y < 0) nextTile = tiles[manager.Index((int)currentPos.x, (int)(currentPos.y - 1))];
+
+        if (nextTile.occupied || currentTile.isIntersection)
+        {
+            //---------------------
+            // IF WE BUMP INTO WALL
+            if (nextTile.occupied && !currentTile.isIntersection)
+            {
+                // if ghost moves to right or left and there is wall next tile
+                if (ghost.direction.x != 0)
+                {
+                    if (currentTile.down == null) ghost.direction = Vector3.up;
+                    else ghost.direction = Vector3.down;
+
+                }
+
+                // if ghost moves to up or down and there is wall next tile
+                else if (ghost.direction.y != 0)
+                {
+                    if (currentTile.left == null) ghost.direction = Vector3.right;
+                    else ghost.direction = Vector3.left;
+
+                }
+
+            }
+
+            //---------------------------------------------------------------------------------------
+            // IF WE ARE AT INTERSECTION
+            // calculate the distance to target from each available tile and choose the shortest one
+            if (currentTile.isIntersection)
+            {
+
+                float dist1, dist2, dist3, dist4;
+                dist1 = dist2 = dist3 = dist4 = 999999f;
+                if (currentTile.up != null && !currentTile.up.occupied && !(ghost.direction.y < 0)) dist1 = manager.distance(currentTile.up, targetTile);
+                if (currentTile.down != null && !currentTile.down.occupied && !(ghost.direction.y > 0)) dist2 = manager.distance(currentTile.down, targetTile);
+                if (currentTile.left != null && !currentTile.left.occupied && !(ghost.direction.x > 0)) dist3 = manager.distance(currentTile.left, targetTile);
+                if (currentTile.right != null && !currentTile.right.occupied && !(ghost.direction.x < 0)) dist4 = manager.distance(currentTile.right, targetTile);
+
+                float min = Mathf.Min(dist1, dist2, dist3, dist4);
+                if (min == dist1) ghost.direction = Vector3.up;
+                if (min == dist2) ghost.direction = Vector3.down;
+                if (min == dist3) ghost.direction = Vector3.left;
+                if (min == dist4) ghost.direction = Vector3.right;
+
+            }
+
+        }
+
+        // if there is no decision to be made, designate next waypoint for the ghost
+        else
+        {
+            ghost.direction = ghost.direction;  // setter updates the waypoint
+        }
+    }
+
+
+
+    TileManager.Tile GetTargetTilePerGhost()
 	{
 		Vector3 targetPos;
 		TileManager.Tile targetTile;
@@ -213,64 +284,56 @@ public class AI : MonoBehaviour {
 
     public void RunFuzzyLogic()
     {
-        Distance pacman_dist;
+        Distance pacman_dist = FuzzyDistance();
         List<Distance> ghosts_dist = new List<Distance>();
         Skill player_skill = PlayerSkill();
 
+        if (!GameManager.scared) {
+            if (pacman_dist == Distance.near)
+            {
+                // not keeping track of pellet time so removed references to pellet_short, pellet_med, pellet_long
+                if (player_skill == Skill.good || player_skill == Skill.medium)
+                    ghost.Chase();
+            }
+            else if (pacman_dist == Distance.medium)
+            {
+                if (player_skill == Skill.bad)
+                {
+                    // if (pacman_med && skill_bad && ghost_far) , defense_behaviour
+                    // if (pacman_med && skill_bad && ghost_near) , shy_ghost_behaviour
+                    ghost.Shy();
+                }
+                else if (player_skill == Skill.good || player_skill == Skill.medium)
+                    ghost.Chase();
+            }
+            else
+            {
+                // pacman_dist == Distance.far
+                if (player_skill == Skill.bad)
+                {
+                    /*
+                    if (pacman_far AND skill_bad AND ghost_near) then shy_ghost_behaviour
+                    if (pacman_far AND skill_bad AND ghost_med) then defense_behaviour
+                    if (pacman_far AND skill_bad AND ghost_far) then defense_behaviour
+                    */
+                    ghost.Shy();
+                }
+                else if (player_skill == Skill.medium)
+                    //if (pacman_far AND skill_med AND ghost_near) then shy_ghost_behaviour
+                    ghost.Shy();
 
-        /*
-        // not keeping track of pellet time so remove the pellet_short, pellet_med, pellet_long
-
-        if (pacman_near && skill_good) 
-            hunting_behaviour
-        if (pacman_near && skill_med) 
-            hunting_behaviour
-        if (pacman_near && skill_med && pellet_long)
-            hunting_behaviour
-
-
-        if (pacman_med && skill_bad && ghost_far && pellet_short) 
-            defense_behaviour
-        if (pacman_med && skill_bad && ghost_near && pellet_short) 
-            shy_ghost_behaviour
-        if (pacman_med AND skill_med AND pellet_long) 
-            hunting_behaviour
-        if (pacman_med AND skill_good AND pellet_long)
-            hunting_behaviour
-            
-
-        if (pacman_far AND skill_bad AND ghost_near AND pellet_short) then shy_ghost_behaviour
-        if (pacman_far AND skill_bad AND ghost_near AND pellet_med) then shy_ghost_behaviour
-        if (pacman_far AND skill_bad AND ghost_med AND pellet_short) then defense_behaviour
-        if (pacman_far AND skill_bad AND ghost_med AND pellet_short) then shy_ghost_behaviour
-        if (pacman_far AND skill_bad AND ghost_med AND pellet_med) then shy_ghost_behaviour
-        if (pacman_far AND skill_bad AND ghost_far AND pellet_short) then defense_behaviour
-        if (pacman_far AND skill_bad AND ghost_far AND pellet_med) then defense_behaviour
-        if (pacman_far AND skill_bad AND ghost_far AND pellet_med) then defense_behaviour
-        if (pacman_far AND skill_med AND ghost_near AND pellet_short) then shy_ghost_behaviour
-        if (pacman_far AND skill_good AND pellet_long) then hunting_behaviour
+                else if (player_skill == Skill.good)
+                    ghost.Chase();
+            }
+        } 
         
-        */
     }
 
     Skill PlayerSkill() {
-        Time time_life = Time.time_long;       // average length of time (s) between lives
-        Rate pellet_rate = Rate.bad;       // rate at which player is consuming pellets
+        Time time_life = FuzzyLifeTime();       // average length of time (s) between lives
+        Rate pellet_rate = FuzzyPelletRate();       // rate at which player is consuming pellets
 
-        // fuzzy membership of average player lifetime in Length
-        var lifetime = GameManager.instance.lifetimes.Average();        // average lifetime of player
-        if (lifetime == 0) {
-            // Handles case where player hasn't died yet
-            time_life = Time.time_short;
-        }
-
-        if (GameManager.instance.lastpelleteaten == GameManager.instance.lastspawnedtime) {
-            // Handles when player dies and on game start
-            pellet_rate = Rate.bad;
-        }
-
-        // fuzzy membership of pellet rate in Length
-
+       
         // fuzzy membership of player skill in Skill        
         if (time_life == Time.time_short || pellet_rate == Rate.bad)
             return Skill.bad;
@@ -282,28 +345,42 @@ public class AI : MonoBehaviour {
             return Skill.bad;
     }
 
-    // A triangular fuzzy number: a, c = feet and b = peak.
-    public double TriangularNumber(double x, double a, double b, double c) {
-        /*
-        f(x; a, b, c) = max (min(x-a/b-a, c-x/c-b), 0)
-        a, c = feet
-        b = peak
-        */
-        return 0;
-    }
 
-    double FuzzyDistance() {
-        return 0;
-    }
-
-    double FuzzyPelletTime()
+    Rate FuzzyPelletRate()
     {
-        return 0;
+        if (GameManager.instance.lastpelleteaten == GameManager.instance.lastspawnedtime)
+        {
+            // Handles when player dies and on game start
+            return Rate.bad;
+        }
+        else {
+
+            return Rate.medium; // testing
+        }
+        
     }
 
-    double FuzzyLifeTime()
+    Time FuzzyLifeTime()
     {
-        return 0;
+        // fuzzy membership of average player lifetime in Length
+        double lifetime = 0;
+        try
+        {
+            lifetime = GameManager.instance.lifetimes.Average();        // average lifetime of player
+            
+        }
+        catch (InvalidOperationException e)
+        {
+            // nothing happens in the case where player hasn't died yet
+            // lifetime still 0
+        }
+        return Time.time_short; // testing
+    }
+
+
+    Distance FuzzyDistance()
+    {
+        return Distance.near; // testing
     }
 
 }

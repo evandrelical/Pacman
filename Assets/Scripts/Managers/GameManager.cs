@@ -111,11 +111,13 @@ public class GameManager : MonoBehaviour {
     // Update is called once per frame
 	void Update () 
 	{
+
         if (scared && _timeToCalm <= Time.time)
             CalmGhosts();
-        else {
+        else if (gameState == GameState.Init)
+            ResetScene();
+        else
             FuzzyBehaviourSelection();
-        }
 
 	}    
 
