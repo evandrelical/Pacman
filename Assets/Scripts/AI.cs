@@ -374,7 +374,23 @@ public class AI : MonoBehaviour {
             // nothing happens in the case where player hasn't died yet
             // lifetime still 0
         }
-        return Time.time_short; // testing
+
+        // fuzzy average lifetime = Max (MIN (s, m1, 1, m2, l), 0) 
+        double s = (GameManager.basetime * 3 - lifetime) / (GameManager.basetime * 3);
+        double m1 =  lifetime / (GameManager.basetime * 3);
+        double m2 = (GameManager.basetime * 6 - lifetime ) / (GameManager.basetime * 6 - GameManager.basetime * 3);
+        double l = lifetime / (GameManager.basetime * 6);
+
+        double[] numbers = new double[] { s, m1, 1, m2, l };
+        double maxOfMin = Math.Max(numbers.Min(), 0);
+
+        if (maxOfMin == 0 || maxOfMin == s)
+            return Time.time_short;
+        else if (maxOfMin == m1 || maxOfMin == 1 || maxOfMin == m2)
+            return Time.time_med;
+        else
+            return Time.time_long;    
+        
     }
 
 
