@@ -10,6 +10,7 @@ public class GameManager : MonoBehaviour {
     public static int Level = 0;
     public static int lives = 3;
 
+
 	public enum GameState { Init, Game, Dead, Scores }
 	public static GameState gameState;
 
@@ -19,18 +20,23 @@ public class GameManager : MonoBehaviour {
     private GameObject inky;
     private GameObject clyde;
     private GameGUINavigation gui;
-
-    public DateTime lastspawnedtime;     // reset on every death
-    public List<int> lifetimes;         //  in seconds
-
-	public static bool scared;
+    
+    public static bool scared;
     static public int score;
 
 	public float scareLength;
 	private float _timeToCalm;
 
     public float SpeedPerLevel;
-    
+
+    //-------------------------------------------------------------------
+    // Variables for fuzzy logic
+
+    public DateTime lastspawnedtime;        // reset on every death
+    public DateTime lastpelleteaten;        // updates every time pellet eaten.
+    public List<int> lifetimes;             //  in seconds
+    public static double basetime = 0;      // equal to the level size
+
     //-------------------------------------------------------------------
     // singleton implementation
     private static GameManager _instance;
@@ -71,7 +77,10 @@ public class GameManager : MonoBehaviour {
 	void Start () 
 	{
 		gameState = GameState.Init;
-	}
+        // Equal to the diagonal of the game board: sqroot(Length^2 + Width^2)
+        basetime = Math.Sqrt(31*31 + 29*29);
+
+    }
 
     void OnLevelWasLoaded()
     {
@@ -96,6 +105,7 @@ public class GameManager : MonoBehaviour {
         scared = false;
         PlayerController.killstreak = 0;
         lastspawnedtime = DateTime.Now;
+        lastpelleteaten = lastspawnedtime;
     }
 
     // Update is called once per frame
@@ -129,6 +139,8 @@ public class GameManager : MonoBehaviour {
         gui.H_ShowReadyScreen();
 
         lastspawnedtime = DateTime.Now;
+        lastpelleteaten = lastspawnedtime;
+
     }
 
 	public void ToggleScare()
@@ -187,6 +199,7 @@ public class GameManager : MonoBehaviour {
 
     public void LoseLife()
     {
+        // Add the last death time to lifetimes list
         DateTime deathTime = DateTime.Now;
         lifetimes.Add(deathTime.Subtract(lastspawnedtime).Seconds);
         Debug.Log("You lasted " + lifetimes[lifetimes.Count - 1] + " seconds.");
@@ -200,6 +213,7 @@ public class GameManager : MonoBehaviour {
         ui.lives.RemoveAt(ui.lives.Count - 1);
 
         lastspawnedtime = DateTime.Now; // reset
+        lastpelleteaten = lastspawnedtime;
     }
 
     public static void DestroySelf()

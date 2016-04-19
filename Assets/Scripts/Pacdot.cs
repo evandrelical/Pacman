@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System;
 
 public class Pacdot : MonoBehaviour {
 
@@ -8,6 +9,7 @@ public class Pacdot : MonoBehaviour {
 		if(other.name == "pacman")
 		{
 			GameManager.score += 10;
+            GameManager.instance.lastpelleteaten = DateTime.Now;
 		    GameObject[] pacdots = GameObject.FindGameObjectsWithTag("pacdot");
             Destroy(gameObject);
 

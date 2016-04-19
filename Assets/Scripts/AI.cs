@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-
+using System.Linq;
 
 public class AI : MonoBehaviour {
 
@@ -209,17 +209,18 @@ public class AI : MonoBehaviour {
     enum Distance { near, medium, far };
     enum Skill {  bad, medium, good }
     enum Rate { bad, medium, good };
-    enum Length { time_short, time_med, time_long };
+    enum Time { time_short, time_med, time_long };
 
     public void RunFuzzyLogic()
     {
         Distance pacman_dist;
         List<Distance> ghosts_dist = new List<Distance>();
-        Skill player_skill;
-        Length pellet;
+        Skill player_skill = PlayerSkill();
 
 
         /*
+        // not keeping track of pellet time so remove the pellet_short, pellet_med, pellet_long
+
         if (pacman_near && skill_good) 
             hunting_behaviour
         if (pacman_near && skill_med) 
@@ -236,6 +237,7 @@ public class AI : MonoBehaviour {
             hunting_behaviour
         if (pacman_med AND skill_good AND pellet_long)
             hunting_behaviour
+            
 
         if (pacman_far AND skill_bad AND ghost_near AND pellet_short) then shy_ghost_behaviour
         if (pacman_far AND skill_bad AND ghost_near AND pellet_med) then shy_ghost_behaviour
@@ -252,17 +254,56 @@ public class AI : MonoBehaviour {
     }
 
     Skill PlayerSkill() {
-        Length time_life;
-        Length pellet_rate;
-        /*
-        if (time_life == Length.time_short || pellet_rate == Rate.bad)
+        Time time_life = Time.time_long;       // average length of time (s) between lives
+        Rate pellet_rate = Rate.bad;       // rate at which player is consuming pellets
+
+        // fuzzy membership of average player lifetime in Length
+        var lifetime = GameManager.instance.lifetimes.Average();        // average lifetime of player
+        if (lifetime == 0) {
+            // Handles case where player hasn't died yet
+            time_life = Time.time_short;
+        }
+
+        if (GameManager.instance.lastpelleteaten == GameManager.instance.lastspawnedtime) {
+            // Handles when player dies and on game start
+            pellet_rate = Rate.bad;
+        }
+
+        // fuzzy membership of pellet rate in Length
+
+        // fuzzy membership of player skill in Skill        
+        if (time_life == Time.time_short || pellet_rate == Rate.bad)
             return Skill.bad;
-        if (time_life == Length.time_med || pellet_rate == Rate.medium)
+        if (time_life == Time.time_med || pellet_rate == Rate.medium)
             return Skill.medium;
-        if (time_life == Length.time_long && pellet_rate == Rate.good)
-            return Skill.medium;
+        if (time_life == Time.time_long && pellet_rate == Rate.good)
+            return Skill.good;
+        else
+            return Skill.bad;
+    }
+
+    // A triangular fuzzy number: a, c = feet and b = peak.
+    public double TriangularNumber(double x, double a, double b, double c) {
+        /*
+        f(x; a, b, c) = max (min(x-a/b-a, c-x/c-b), 0)
+        a, c = feet
+        b = peak
         */
-        return Skill.bad;
+        return 0;
+    }
+
+    double FuzzyDistance() {
+        return 0;
+    }
+
+    double FuzzyPelletTime()
+    {
+        return 0;
+    }
+
+    double FuzzyLifeTime()
+    {
+        return 0;
     }
 
 }
