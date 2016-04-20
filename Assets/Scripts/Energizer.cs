@@ -16,6 +16,7 @@ public class Energizer : MonoBehaviour {
     {
         if(col.name == "pacman")
         {
+            gm.numpelletseaten++;
             gm.ScareGhosts();
             Destroy(gameObject);
         }

@@ -345,24 +345,43 @@ public class AI : MonoBehaviour {
             return Skill.bad;
     }
 
-
+    // fuzzy membership of rate of pellet consumption in Rate (bad, medium, good)
+    // pellet consumption = pellets eaten / time elapsed
     Rate FuzzyPelletRate()
     {
-        if (GameManager.instance.lastpelleteaten == GameManager.instance.lastspawnedtime)
+        double pellet_rate = 0;
+        try
         {
-            // Handles when player dies and on game start
-            return Rate.bad;
-        }
-        else {
+            // time elapsed = seconds (as of right now) since last death
+            int elapsed = DateTime.Now.Subtract(GameManager.instance.lastspawnedtime).Seconds;
+            pellet_rate = GameManager.instance.numpelletseaten / elapsed;
 
-            return Rate.medium; // testing
         }
-        
+        catch
+        {
+            pellet_rate = 0;
+        }
+        // fPellet consumption rate = Max (MIN (b, m1, 1, m2, g), 0) 
+        double b = 1 - pellet_rate;
+        double m1 = pellet_rate / 0.5;
+        double m2 = (1 - pellet_rate) / 0.5;
+        double g = pellet_rate;
+
+        double[] numbers = new double[] { b, m1, 1, m2, g };
+        double maxOfMin = Math.Max(numbers.Min(), 0);
+
+        if (maxOfMin == 0 || maxOfMin == b)
+            return Rate.bad;
+        else if (maxOfMin == m1 || maxOfMin == 1 || maxOfMin == m2)
+            return Rate.medium;
+        else
+            return Rate.good;
+
     }
 
+    // fuzzy membership of average player lifetime in Time (short, medium, long)
     Time FuzzyLifeTime()
-    {
-        // fuzzy membership of average player lifetime in Length
+    {       
         double lifetime = 0;
         try
         {
@@ -389,14 +408,21 @@ public class AI : MonoBehaviour {
         else if (maxOfMin == m1 || maxOfMin == 1 || maxOfMin == m2)
             return Time.time_med;
         else
-            return Time.time_long;    
-        
+            return Time.time_long;         
     }
 
-
+    // fuzzy membership of distance between two entities in Distance (near, medium, far)
     Distance FuzzyDistance()
     {
         return Distance.near; // testing
+
+        /*
+        Distance = Max (MIN (near, medium1, 1, medium2, far), 0) where
+        Near = (level_size/3 – x) / (level_size/3)
+        Medium1 = x  / (level_size/3)
+        Medium2 = (level_size*2/3 – x ) / (level_size*2/3 – level_size/3) 
+        Far = (x – level_size/3) / (level_size*2/3 - level_size/3)
+        */
     }
 
 }

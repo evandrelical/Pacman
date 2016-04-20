@@ -33,9 +33,10 @@ public class GameManager : MonoBehaviour {
     // Variables for fuzzy logic
 
     public DateTime lastspawnedtime;        // reset on every death
+    public int numpelletseaten;             // how many pellets have been eaten
     public DateTime lastpelleteaten;        // updates every time pellet eaten.
     public List<int> lifetimes;             //  in seconds
-    public static double basetime = 0;      // equal to the level size
+    public static double basetime = 0;      // this is also equal to the level size 
 
     //-------------------------------------------------------------------
     // singleton implementation
@@ -106,6 +107,7 @@ public class GameManager : MonoBehaviour {
         PlayerController.killstreak = 0;
         lastspawnedtime = DateTime.Now;
         lastpelleteaten = lastspawnedtime;
+        numpelletseaten = 0;
     }
 
     // Update is called once per frame
@@ -142,6 +144,7 @@ public class GameManager : MonoBehaviour {
 
         lastspawnedtime = DateTime.Now;
         lastpelleteaten = lastspawnedtime;
+        numpelletseaten = 0;
 
     }
 
@@ -216,6 +219,7 @@ public class GameManager : MonoBehaviour {
 
         lastspawnedtime = DateTime.Now; // reset
         lastpelleteaten = lastspawnedtime;
+
     }
 
     public static void DestroySelf()

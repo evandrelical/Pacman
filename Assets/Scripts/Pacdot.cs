@@ -9,6 +9,7 @@ public class Pacdot : MonoBehaviour {
 		if(other.name == "pacman")
 		{
 			GameManager.score += 10;
+            GameManager.instance.numpelletseaten++;
             GameManager.instance.lastpelleteaten = DateTime.Now;
 		    GameObject[] pacdots = GameObject.FindGameObjectsWithTag("pacdot");
             Destroy(gameObject);
