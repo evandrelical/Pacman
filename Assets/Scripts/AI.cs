@@ -284,8 +284,8 @@ public class AI : MonoBehaviour {
 
     public void RunFuzzyLogic()
     {
-        Distance pacman_dist = FuzzyDistance();
-        List<Distance> ghosts_dist = new List<Distance>();
+        Distance pacman_dist = FuzzyDistance(ghost.transform, GameManager.instance.pacman.transform);
+        Distance ghost_dist = FuzzyDistance(ghost.transform, GameManager.instance.pacman.transform); // testing - this is supposed to be for ghosts
         Skill player_skill = PlayerSkill();
 
         if (!GameManager.scared) {
@@ -299,9 +299,10 @@ public class AI : MonoBehaviour {
             {
                 if (player_skill == Skill.bad)
                 {
-                    // if (pacman_med && skill_bad && ghost_far) , defense_behaviour
-                    // if (pacman_med && skill_bad && ghost_near) , shy_ghost_behaviour
-                    ghost.Shy();
+                    if (ghost_dist == Distance.far)
+                        ghost.Defend();
+                    else if (ghost_dist == Distance.near)
+                        ghost.Shy();
                 }
                 else if (player_skill == Skill.good || player_skill == Skill.medium)
                     ghost.Chase();
@@ -311,12 +312,10 @@ public class AI : MonoBehaviour {
                 // pacman_dist == Distance.far
                 if (player_skill == Skill.bad)
                 {
-                    /*
-                    if (pacman_far AND skill_bad AND ghost_near) then shy_ghost_behaviour
-                    if (pacman_far AND skill_bad AND ghost_med) then defense_behaviour
-                    if (pacman_far AND skill_bad AND ghost_far) then defense_behaviour
-                    */
-                    ghost.Shy();
+                    if (ghost_dist == Distance.far || ghost_dist == Distance.medium)
+                        ghost.Defend();
+                    else if (ghost_dist == Distance.near)
+                        ghost.Shy();
                 }
                 else if (player_skill == Skill.medium)
                     //if (pacman_far AND skill_med AND ghost_near) then shy_ghost_behaviour
@@ -411,18 +410,28 @@ public class AI : MonoBehaviour {
             return Time.time_long;         
     }
 
-    // fuzzy membership of distance between two entities in Distance (near, medium, far)
-    Distance FuzzyDistance()
+    // fuzzy membership of magnitude of straight-line distance between two entities in Distance (near, medium, far)
+    Distance FuzzyDistance(Transform a, Transform b)
     {
-        return Distance.near; // testing
+        double dist = Vector3.Distance(a.position, b.position);
 
-        /*
-        Distance = Max (MIN (near, medium1, 1, medium2, far), 0) where
-        Near = (level_size/3 – x) / (level_size/3)
-        Medium1 = x  / (level_size/3)
-        Medium2 = (level_size*2/3 – x ) / (level_size*2/3 – level_size/3) 
-        Far = (x – level_size/3) / (level_size*2/3 - level_size/3)
-        */
+        // fuzzy distance = Max (MIN (near, medium1, 1, medium2, far), 0)
+        double near = (GameManager.basetime / 3 - dist) / (GameManager.basetime / 3);
+        double medium1 = dist / (GameManager.basetime / 3);
+        double medium2 = (GameManager.basetime * 2 / 3 - dist) / (GameManager.basetime * (2 / 3) - GameManager.basetime / 3);
+        double far = (dist - GameManager.basetime / 3) / (GameManager.basetime * (2 / 3) - GameManager.basetime / 3);
+
+        double[] numbers = new double[] { near, medium1, 1, medium2, far };
+        double maxOfMin = Math.Max(numbers.Min(), 0);
+
+        if (maxOfMin == 0 || maxOfMin == near)
+            return Distance.near;
+        else if (maxOfMin == medium1 || maxOfMin == 1 || maxOfMin == medium2)
+            return Distance.medium;
+        else
+            return Distance.far;
+
     }
+
 
 }
