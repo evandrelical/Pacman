@@ -285,7 +285,8 @@ public class AI : MonoBehaviour {
     public void RunFuzzyLogic()
     {
         Distance pacman_dist = FuzzyDistance(ghost.transform, GameManager.instance.pacman.transform);
-        Distance ghost_dist = FuzzyDistance(ghost.transform, GameManager.instance.pacman.transform); // testing - this is supposed to be for ghosts
+        Distance ghost_dist = GetGhostsDistance();
+
         Skill player_skill = PlayerSkill();
 
         if (!GameManager.scared) {
@@ -433,5 +434,53 @@ public class AI : MonoBehaviour {
 
     }
 
+    Distance GetGhostsDistance() {
+        List<Distance> list = new List<Distance>();
 
+
+        // get the other ghosts distances from the named ghost
+        switch (name)
+        {
+            case "blinky":
+                list.Add(FuzzyDistance(ghost.transform, GameManager.instance.pinky.transform));
+                list.Add(FuzzyDistance(ghost.transform, GameManager.instance.inky.transform));
+                list.Add(FuzzyDistance(ghost.transform, GameManager.instance.clyde.transform));
+                break;
+            case "pinky":
+                list.Add(FuzzyDistance(ghost.transform, GameManager.instance.blinky.transform));
+                list.Add(FuzzyDistance(ghost.transform, GameManager.instance.inky.transform));
+                list.Add(FuzzyDistance(ghost.transform, GameManager.instance.clyde.transform));
+                break;
+            case "inky":
+                list.Add(FuzzyDistance(ghost.transform, GameManager.instance.blinky.transform));
+                list.Add(FuzzyDistance(ghost.transform, GameManager.instance.pinky.transform));
+                list.Add(FuzzyDistance(ghost.transform, GameManager.instance.clyde.transform));
+                break;
+            case "clyde":
+                list.Add(FuzzyDistance(ghost.transform, GameManager.instance.blinky.transform));
+                list.Add(FuzzyDistance(ghost.transform, GameManager.instance.pinky.transform));
+                list.Add(FuzzyDistance(ghost.transform, GameManager.instance.inky.transform));
+                break;
+            default:
+                list = null;
+                Debug.Log("TARGET TILE NOT ASSIGNED");
+                break;
+
+        }
+
+        if (list != null)
+        {
+            if (list.Contains(Distance.near))
+                return Distance.near;
+            else if (list.Contains(Distance.medium))
+                return Distance.medium;
+            else
+                return Distance.far;
+        }
+        else {
+            Debug.Log("Default value for ghost distance used.");
+            return Distance.medium;
+        }       
+        
+    }
 }
